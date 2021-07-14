@@ -52,6 +52,7 @@ class InfiniteScrollTabView extends StatelessWidget {
         backgroundColor: backgroundColor,
         onPageChanged: onPageChanged,
         indicatorColor: indicatorColor,
+        defaultLocale: Localizations.localeOf(context),
       ),
     );
   }
@@ -72,6 +73,7 @@ class _Content extends StatefulWidget {
     this.backgroundColor,
     this.onPageChanged,
     required this.indicatorColor,
+    required this.defaultLocale,
   }) : super(key: key);
 
   final Size size;
@@ -86,6 +88,7 @@ class _Content extends StatefulWidget {
   final Color? backgroundColor;
   final ValueChanged<int>? onPageChanged;
   final Color indicatorColor;
+  final Locale defaultLocale;
 
   @override
   __ContentState createState() => __ContentState();
@@ -151,6 +154,7 @@ class __ContentState extends State<_Content> {
       final layoutedText = TextPainter(
         text: TextSpan(text: text.data, style: style),
         maxLines: 1,
+        locale: text.locale ?? widget.defaultLocale,
         textScaleFactor: widget.textScaleFactor,
         textDirection: widget.textDirection,
       )..layout();
