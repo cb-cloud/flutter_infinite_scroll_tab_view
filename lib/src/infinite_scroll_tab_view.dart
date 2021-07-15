@@ -14,6 +14,8 @@ typedef IndexedTapCallback = void Function(int index);
 
 const _tabPadding = 12.0;
 
+const _tabAnimationDuration = Duration(milliseconds: 550);
+
 class InfiniteScrollTabView extends StatelessWidget {
   const InfiniteScrollTabView({
     Key? key,
@@ -94,7 +96,8 @@ class _Content extends StatefulWidget {
   __ContentState createState() => __ContentState();
 }
 
-class __ContentState extends State<_Content> {
+class __ContentState extends State<_Content>
+    with SingleTickerProviderStateMixin {
   int selectedIndex = 0;
   late final _tabController = CycledScrollController(
     initialScrollOffset: _totalTabSize + _centeringOffset(0),
@@ -121,6 +124,14 @@ class __ContentState extends State<_Content> {
   final List<Tween<double>> _tabOffsets = [];
 
   final List<Tween<double>> _tabSizeTweens = [];
+
+  late final _indicatorAnimationController =
+      AnimationController(vsync: this, duration: _tabAnimationDuration)
+        ..addListener(() {
+          if (_indicatorAnimation == null) return;
+          _indicatorSizeNotifier.value = _indicatorAnimation!.value;
+        });
+  Animation<double>? _indicatorAnimation;
 
   double _totalTabSizeCache = 0.0;
   double get _totalTabSize {
@@ -228,6 +239,7 @@ class __ContentState extends State<_Content> {
     HapticFeedback.selectionClick();
     setState(() {
       selectedIndex = modIndex;
+      _isTabPositionAligned = true;
     });
 
     final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
@@ -237,10 +249,15 @@ class __ContentState extends State<_Content> {
     _tabController
         .animateTo(
           targetOffset + _centeringOffset(modIndex),
-          duration: Duration(milliseconds: 550),
+          duration: _tabAnimationDuration,
           curve: Curves.ease,
         )
         .then((_) => _isTabForceScrolling = false);
+
+    _indicatorAnimation =
+        Tween(begin: _indicatorSizeNotifier.value, end: _tabTextSizes[modIndex])
+            .animate(_indicatorAnimationController);
+    _indicatorAnimationController.forward(from: 0);
 
     _isContentChangingByTab = true;
     // 現在のスクロール位置とページインデックスを取得
@@ -256,7 +273,7 @@ class __ContentState extends State<_Content> {
 
     await _pageController.animateTo(
       targetPageOffset,
-      duration: Duration(milliseconds: 550),
+      duration: _tabAnimationDuration,
       curve: Curves.ease,
     );
 
@@ -362,6 +379,7 @@ class __ContentState extends State<_Content> {
   void dispose() {
     _tabController.dispose();
     _pageController.dispose();
+    _indicatorAnimationController.dispose();
     super.dispose();
   }
 }
