@@ -221,6 +221,48 @@ class __ContentState extends State<_Content> {
     });
   }
 
+  void _onTapTab(int modIndex, int rawIndex) async {
+    widget.onTabTap?.call(modIndex);
+    widget.onPageChanged?.call(modIndex);
+
+    HapticFeedback.selectionClick();
+    setState(() {
+      selectedIndex = modIndex;
+    });
+
+    final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
+    final targetOffset =
+        _totalTabSize * (rawIndex ~/ widget.contentLength) + sizeOnIndex;
+    _isTabForceScrolling = true;
+    _tabController
+        .animateTo(
+          targetOffset + _centeringOffset(modIndex),
+          duration: Duration(milliseconds: 550),
+          curve: Curves.ease,
+        )
+        .then((_) => _isTabForceScrolling = false);
+
+    _isContentChangingByTab = true;
+    // 現在のスクロール位置とページインデックスを取得
+    final currentOffset = _pageController.offset;
+    final currentModIndex =
+        (currentOffset ~/ widget.size.width) % widget.contentLength;
+
+    // 選択したページまでの距離を計算する
+    // modの境界をまたぐ場合を考慮して、近い方向を指すように正負を調整する
+    final move = calculateMoveIndexDistance(
+        currentModIndex, modIndex, widget.contentLength);
+    final targetPageOffset = currentOffset + move * widget.size.width;
+
+    await _pageController.animateTo(
+      targetPageOffset,
+      duration: Duration(milliseconds: 550),
+      curve: Curves.ease,
+    );
+
+    _isContentChangingByTab = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -235,50 +277,7 @@ class __ContentState extends State<_Content> {
               return Material(
                 color: widget.backgroundColor,
                 child: InkWell(
-                  onTap: () async {
-                    widget.onTabTap?.call(modIndex);
-                    widget.onPageChanged?.call(modIndex);
-
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      selectedIndex = modIndex;
-                    });
-
-                    final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
-                    final targetOffset =
-                        _totalTabSize * (rawIndex ~/ widget.contentLength) +
-                            sizeOnIndex;
-                    _isTabForceScrolling = true;
-                    _tabController
-                        .animateTo(
-                          targetOffset + _centeringOffset(modIndex),
-                          duration: Duration(milliseconds: 550),
-                          curve: Curves.ease,
-                        )
-                        .then((_) => _isTabForceScrolling = false);
-
-                    _isContentChangingByTab = true;
-                    // 現在のスクロール位置とページインデックスを取得
-                    final currentOffset = _pageController.offset;
-                    final currentModIndex =
-                        (currentOffset ~/ widget.size.width) %
-                            widget.contentLength;
-
-                    // 選択したページまでの距離を計算する
-                    // modの境界をまたぐ場合を考慮して、近い方向を指すように正負を調整する
-                    final move = calculateMoveIndexDistance(
-                        currentModIndex, modIndex, widget.contentLength);
-                    final targetPageOffset =
-                        currentOffset + move * widget.size.width;
-
-                    await _pageController.animateTo(
-                      targetPageOffset,
-                      duration: Duration(milliseconds: 550),
-                      curve: Curves.ease,
-                    );
-
-                    _isContentChangingByTab = false;
-                  },
+                  onTap: () => _onTapTab(modIndex, rawIndex),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: _tabPadding),
