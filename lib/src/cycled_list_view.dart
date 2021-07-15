@@ -132,7 +132,7 @@ class _CycledListViewState extends State<CycledListView> {
         // Register listener to jump greater page when offset is less than threshold.
         offset.addListener(() {
           if (!(offset is _InfiniteScrollPosition)) return;
-          if (offset.pixels <= MediaQuery.of(context).size.width) {
+          if (offset.pixels < 0.0) {
             offset._forcePixels(_effectiveController.initialScrollOffset);
           }
         });

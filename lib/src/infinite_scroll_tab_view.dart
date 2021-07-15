@@ -97,10 +97,10 @@ class _Content extends StatefulWidget {
 class __ContentState extends State<_Content> {
   int selectedIndex = 0;
   late final _tabController = CycledScrollController(
-    initialScrollOffset: 100 * _totalTabSize + _centeringOffset(0),
+    initialScrollOffset: _totalTabSize + _centeringOffset(0),
   );
   late final _pageController = CycledScrollController(
-    initialScrollOffset: 100 * widget.size.width * widget.contentLength,
+    initialScrollOffset: widget.size.width * widget.contentLength,
   );
 
   bool _isContentChangingByTab = false;
@@ -197,7 +197,7 @@ class __ContentState extends State<_Content> {
       final currentIndexDecimal =
           currentIndexDouble - currentIndexDouble.floor();
 
-      _tabController.jumpTo(100 * _totalTabSize +
+      _tabController.jumpTo(_totalTabSize +
           _tabOffsets[currentIndex % widget.contentLength]
               .transform(currentIndexDecimal));
 
