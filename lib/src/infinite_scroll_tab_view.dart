@@ -100,11 +100,9 @@ class __ContentState extends State<_Content>
     with SingleTickerProviderStateMixin {
   int selectedIndex = 0;
   late final _tabController = CycledScrollController(
-    initialScrollOffset: _totalTabSize + _centeringOffset(0),
+    initialScrollOffset: _centeringOffset(0),
   );
-  late final _pageController = CycledScrollController(
-    initialScrollOffset: widget.size.width * widget.contentLength,
-  );
+  late final _pageController = CycledScrollController();
 
   bool _isContentChangingByTab = false;
   bool _isTabForceScrolling = false;
@@ -208,9 +206,8 @@ class __ContentState extends State<_Content>
       final currentIndexDecimal =
           currentIndexDouble - currentIndexDouble.floor();
 
-      _tabController.jumpTo(_totalTabSize +
-          _tabOffsets[currentIndex % widget.contentLength]
-              .transform(currentIndexDecimal));
+      _tabController.jumpTo(_tabOffsets[currentIndex % widget.contentLength]
+          .transform(currentIndexDecimal));
 
       _indicatorSizeNotifier.value =
           _tabSizeTweens[currentIndex % widget.contentLength]
@@ -349,12 +346,14 @@ class __ContentState extends State<_Content>
         Expanded(
           child: CycledListView.builder(
             scrollDirection: Axis.horizontal,
-            itemExtent: widget.size.width,
             contentCount: widget.contentLength,
             controller: _pageController,
             physics: PageScrollPhysics(),
-            itemBuilder: (context, modIndex, rawIndex) => widget.pageBuilder(
-                context, modIndex, selectedIndex == modIndex),
+            itemBuilder: (context, modIndex, rawIndex) => SizedBox(
+              width: widget.size.width,
+              child: widget.pageBuilder(
+                  context, modIndex, selectedIndex == modIndex),
+            ),
           ),
         ),
       ],

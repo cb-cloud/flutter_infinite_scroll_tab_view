@@ -15,7 +15,6 @@ class CycledListView extends StatefulWidget {
     this.controller,
     this.physics,
     this.padding,
-    this.itemExtent,
     required this.itemBuilder,
     required this.contentCount,
     this.itemCount,
@@ -50,9 +49,6 @@ class CycledListView extends StatefulWidget {
 
   /// See: [SliverChildBuilderDelegate.childCount]
   final int? itemCount;
-
-  /// See: [ListView.itemExtent]
-  final double? itemExtent;
 
   /// See: [ScrollView.cacheExtent]
   final double? cacheExtent;
@@ -93,6 +89,8 @@ class _CycledListViewState extends State<CycledListView> {
   CycledScrollController get _effectiveController =>
       widget.controller ?? _controller!;
 
+  UniqueKey positiveListKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
@@ -129,18 +127,11 @@ class _CycledListViewState extends State<CycledListView> {
       controller: _effectiveController,
       physics: scrollPhysics,
       viewportBuilder: (BuildContext context, ViewportOffset offset) {
-        // Register listener to jump greater page when offset is less than threshold.
-        offset.addListener(() {
-          if (!(offset is _InfiniteScrollPosition)) return;
-          if (offset.pixels < 0.0) {
-            offset._forcePixels(_effectiveController.initialScrollOffset);
-          }
-        });
-
         return Viewport(
           axisDirection: axisDirection,
           anchor: widget.anchor,
           offset: offset,
+          center: positiveListKey,
           slivers: slivers,
           cacheExtent: widget.cacheExtent,
         );
@@ -154,24 +145,40 @@ class _CycledListViewState extends State<CycledListView> {
   }
 
   List<Widget> _buildSlivers(BuildContext context) {
-    final itemExtent = widget.itemExtent;
     return <Widget>[
-      (itemExtent != null)
-          ? SliverFixedExtentList(
-              delegate: positiveChildrenDelegate,
-              itemExtent: itemExtent,
-            )
-          : SliverList(
-              delegate: positiveChildrenDelegate,
-            ),
+      SliverList(
+        delegate: negativeChildrenDelegate,
+      ),
+      SliverList(
+        delegate: positiveChildrenDelegate,
+        key: positiveListKey,
+      ),
     ];
   }
 
   SliverChildDelegate get positiveChildrenDelegate {
     final itemCount = widget.itemCount;
     return SliverChildBuilderDelegate(
-      (context, index) =>
-          widget.itemBuilder(context, index % widget.contentCount, index),
+      (context, index) {
+        return widget.itemBuilder(context, index % widget.contentCount, index);
+      },
+      childCount: itemCount,
+      addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
+      addRepaintBoundaries: widget.addRepaintBoundaries,
+    );
+  }
+
+  SliverChildDelegate get negativeChildrenDelegate {
+    final itemCount = widget.itemCount;
+    return SliverChildBuilderDelegate(
+      (context, index) {
+        if (index == 0) return SizedBox.shrink();
+        return widget.itemBuilder(
+          context,
+          (widget.contentCount - index) % widget.contentCount,
+          widget.contentCount - index,
+        );
+      },
       childCount: itemCount,
       addAutomaticKeepAlives: widget.addAutomaticKeepAlives,
       addRepaintBoundaries: widget.addRepaintBoundaries,
@@ -194,8 +201,6 @@ class _CycledListViewState extends State<CycledListView> {
         'padding', widget.padding,
         defaultValue: null));
     properties.add(
-        DoubleProperty('itemExtent', widget.itemExtent, defaultValue: null));
-    properties.add(
         DoubleProperty('cacheExtent', widget.cacheExtent, defaultValue: null));
   }
 }
@@ -204,7 +209,7 @@ class _CycledListViewState extends State<CycledListView> {
 class CycledScrollController extends ScrollController {
   /// Creates a new [CycledScrollController]
   CycledScrollController({
-    required this.initialScrollOffset,
+    this.initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
     String? debugLabel,
   }) : super(
@@ -247,10 +252,6 @@ class _InfiniteScrollPosition extends ScrollPositionWithSingleContext {
           oldPosition: oldPosition,
           debugLabel: debugLabel,
         );
-
-  void _forcePixels(double value) {
-    super.forcePixels(value);
-  }
 
   @override
   double get minScrollExtent => double.negativeInfinity;
