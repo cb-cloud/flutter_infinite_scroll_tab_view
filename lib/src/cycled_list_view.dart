@@ -174,10 +174,7 @@ class _CycledListViewState extends State<CycledListView> {
       (context, index) {
         if (index == 0) return SizedBox.shrink();
         return widget.itemBuilder(
-          context,
-          (widget.contentCount - index) % widget.contentCount,
-          widget.contentCount - index,
-        );
+            context, -index % widget.contentCount, -index);
       },
       childCount: itemCount,
       addAutomaticKeepAlives: widget.addAutomaticKeepAlives,

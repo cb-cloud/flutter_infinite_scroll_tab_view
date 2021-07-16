@@ -240,8 +240,10 @@ class __ContentState extends State<_Content>
     });
 
     final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
-    final targetOffset =
-        _totalTabSize * (rawIndex ~/ widget.contentLength) + sizeOnIndex;
+    final section = rawIndex.isNegative
+        ? (rawIndex + 1) ~/ widget.contentLength - 1
+        : rawIndex ~/ widget.contentLength;
+    final targetOffset = _totalTabSize * section + sizeOnIndex;
     _isTabForceScrolling = true;
     _tabController
         .animateTo(
@@ -282,7 +284,7 @@ class __ContentState extends State<_Content>
     return Column(
       children: [
         SizedBox(
-          height: 56,
+          height: 44,
           child: CycledListView.builder(
             scrollDirection: Axis.horizontal,
             controller: _tabController,
