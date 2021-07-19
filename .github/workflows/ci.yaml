@@ -1,0 +1,35 @@
+name: Testing
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    container: cirrusci/flutter:2.2.2
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Dependencies
+        run: flutter pub get
+      
+      - name: Format
+        run: flutter format --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Testing
+        run: flutter test --coverage
+
+      - name: Report code coverage
+        uses: zgosalvez/github-actions-report-lcov@v1
+        with:
+          coverage-files: coverage/lcov.info
+          minimum-coverage: 50
+          artifact-name: code_coverage_report
+          github-token: ${{ secrets.GITHUB_TOKEN }}
