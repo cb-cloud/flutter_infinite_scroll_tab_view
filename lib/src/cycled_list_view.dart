@@ -172,7 +172,7 @@ class _CycledListViewState extends State<CycledListView> {
     final itemCount = widget.itemCount;
     return SliverChildBuilderDelegate(
       (context, index) {
-        if (index == 0) return SizedBox.shrink();
+        if (index == 0) return const SizedBox.shrink();
         return widget.itemBuilder(
             context, -index % widget.contentCount, -index);
       },
@@ -206,7 +206,7 @@ class _CycledListViewState extends State<CycledListView> {
 class CycledScrollController extends ScrollController {
   /// Creates a new [CycledScrollController]
   CycledScrollController({
-    this.initialScrollOffset = 0.0,
+    double initialScrollOffset = 0.0,
     bool keepScrollOffset = true,
     String? debugLabel,
   }) : super(
@@ -214,8 +214,6 @@ class CycledScrollController extends ScrollController {
           keepScrollOffset: keepScrollOffset,
           debugLabel: debugLabel,
         );
-
-  final double initialScrollOffset;
 
   ScrollDirection get currentScrollDirection => position.userScrollDirection;
 

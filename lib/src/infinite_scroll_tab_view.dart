@@ -339,7 +339,7 @@ class __ContentState extends State<_Content>
             scrollDirection: Axis.horizontal,
             contentCount: widget.contentLength,
             controller: _pageController,
-            physics: PageScrollPhysics(),
+            physics: const PageScrollPhysics(),
             itemBuilder: (context, modIndex, rawIndex) => SizedBox(
               width: widget.size.width,
               child: ValueListenableBuilder<int>(
@@ -434,7 +434,7 @@ class _CenteredIndicator extends StatelessWidget {
       valueListenable: size,
       builder: (context, value, _) => Center(
         child: Transform.translate(
-          offset: Offset(0.0, -2.0),
+          offset: const Offset(0.0, -2.0),
           child: Container(
             height: 2.0,
             decoration: BoxDecoration(
