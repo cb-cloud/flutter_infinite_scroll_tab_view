@@ -12,8 +12,6 @@ typedef SelectIndexedTextBuilder = Text Function(int index, bool isSelected);
 
 typedef IndexedTapCallback = void Function(int index);
 
-const _tabPadding = 12.0;
-
 const _tabAnimationDuration = Duration(milliseconds: 550);
 
 class InfiniteScrollTabView extends StatelessWidget {
@@ -27,6 +25,8 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.backgroundColor,
     this.onPageChanged,
     this.indicatorColor = Colors.pinkAccent,
+    this.tabHeight = 44.0,
+    this.tabPadding = 12.0,
   }) : super(key: key);
 
   final int contentLength;
@@ -37,6 +37,8 @@ class InfiniteScrollTabView extends StatelessWidget {
   final Color? backgroundColor;
   final ValueChanged<int>? onPageChanged;
   final Color indicatorColor;
+  final double tabHeight;
+  final double tabPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +57,8 @@ class InfiniteScrollTabView extends StatelessWidget {
         onPageChanged: onPageChanged,
         indicatorColor: indicatorColor,
         defaultLocale: Localizations.localeOf(context),
+        tabHeight: tabHeight,
+        tabPadding: tabPadding,
       ),
     );
   }
@@ -76,6 +80,8 @@ class _Content extends StatefulWidget {
     this.onPageChanged,
     required this.indicatorColor,
     required this.defaultLocale,
+    required this.tabHeight,
+    required this.tabPadding,
   }) : super(key: key);
 
   final Size size;
@@ -91,6 +97,8 @@ class _Content extends StatefulWidget {
   final ValueChanged<int>? onPageChanged;
   final Color indicatorColor;
   final Locale defaultLocale;
+  final double tabHeight;
+  final double tabPadding;
 
   @override
   __ContentState createState() => __ContentState();
@@ -167,7 +175,7 @@ class __ContentState extends State<_Content>
         textScaleFactor: widget.textScaleFactor,
         textDirection: widget.textDirection,
       )..layout();
-      final calculatedWidth = layoutedText.size.width + _tabPadding * 2;
+      final calculatedWidth = layoutedText.size.width + widget.tabPadding * 2;
       _tabTextSizes.add(math.min(calculatedWidth, widget.size.width));
       _tabSizesFromIndex.add(_calculateTabSizeFromIndex(i));
     }
@@ -284,7 +292,7 @@ class __ContentState extends State<_Content>
     return Column(
       children: [
         SizedBox(
-          height: 44,
+          height: widget.tabHeight,
           child: CycledListView.builder(
             scrollDirection: Axis.horizontal,
             controller: _tabController,
@@ -295,8 +303,9 @@ class __ContentState extends State<_Content>
                 child: InkWell(
                   onTap: () => _onTapTab(modIndex, rawIndex),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: _tabPadding),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: widget.tabPadding,
+                    ),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom:
