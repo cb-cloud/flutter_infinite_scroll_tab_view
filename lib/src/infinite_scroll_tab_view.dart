@@ -354,20 +354,6 @@ class __ContentState extends State<_Content>
     );
   }
 
-  /// 選択したページまでの距離を計算する。
-  ///
-  /// modの境界をまたぐ場合を考慮して、近い方向を指すように正負を調整する。
-  @visibleForTesting
-  int calculateMoveIndexDistance(int current, int selected, int length) {
-    final tabDistance = selected - current;
-    var move = tabDistance;
-    if (tabDistance.abs() >= length ~/ 2) {
-      move += (-tabDistance.sign * length);
-    }
-
-    return move;
-  }
-
   @override
   void dispose() {
     _tabController.dispose();
@@ -375,6 +361,20 @@ class __ContentState extends State<_Content>
     _indicatorAnimationController.dispose();
     super.dispose();
   }
+}
+
+/// 選択したページまでの距離を計算する。
+///
+/// modの境界をまたぐ場合を考慮して、近い方向を指すように正負を調整する。
+@visibleForTesting
+int calculateMoveIndexDistance(int current, int selected, int length) {
+  final tabDistance = selected - current;
+  var move = tabDistance;
+  if (tabDistance.abs() >= length ~/ 2) {
+    move += (-tabDistance.sign * length);
+  }
+
+  return move;
 }
 
 class _TabContent extends StatelessWidget {
