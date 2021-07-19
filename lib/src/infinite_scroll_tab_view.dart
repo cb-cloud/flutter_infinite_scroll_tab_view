@@ -106,7 +106,6 @@ class _Content extends StatefulWidget {
 
 class __ContentState extends State<_Content>
     with SingleTickerProviderStateMixin {
-  int selectedIndex = 0;
   late final _tabController = CycledScrollController(
     initialScrollOffset: _centeringOffset(0),
   );
@@ -114,9 +113,10 @@ class __ContentState extends State<_Content>
 
   bool _isContentChangingByTab = false;
   bool _isTabForceScrolling = false;
-  bool _isTabPositionAligned = true;
 
-  late final ValueNotifier<double> _indicatorSizeNotifier;
+  late final ValueNotifier<double> _indicatorSize;
+  final _isTabPositionAligned = ValueNotifier<bool>(true);
+  final _selectedIndex = ValueNotifier<int>(0);
 
   final List<double> _tabTextSizes = [];
   final List<double> _tabSizesFromIndex = [];
@@ -135,7 +135,7 @@ class __ContentState extends State<_Content>
       AnimationController(vsync: this, duration: _tabAnimationDuration)
         ..addListener(() {
           if (_indicatorAnimation == null) return;
-          _indicatorSizeNotifier.value = _indicatorAnimation!.value;
+          _indicatorSize.value = _indicatorAnimation!.value;
         });
   Animation<double>? _indicatorAnimation;
 
@@ -192,15 +192,13 @@ class __ContentState extends State<_Content>
       _tabSizeTweens.add(Tween(begin: sizeBegin, end: sizeEnd));
     }
 
-    _indicatorSizeNotifier = ValueNotifier(_tabTextSizes[0]);
+    _indicatorSize = ValueNotifier(_tabTextSizes[0]);
 
     _tabController.addListener(() {
       if (_isTabForceScrolling) return;
 
-      if (_isTabPositionAligned) {
-        setState(() {
-          _isTabPositionAligned = false;
-        });
+      if (_isTabPositionAligned.value) {
+        _isTabPositionAligned.value = false;
       }
     });
 
@@ -217,21 +215,16 @@ class __ContentState extends State<_Content>
       _tabController.jumpTo(_tabOffsets[currentIndex % widget.contentLength]
           .transform(currentIndexDecimal));
 
-      _indicatorSizeNotifier.value =
-          _tabSizeTweens[currentIndex % widget.contentLength]
-              .transform(currentIndexDecimal);
+      _indicatorSize.value = _tabSizeTweens[currentIndex % widget.contentLength]
+          .transform(currentIndexDecimal);
 
-      if (!_isTabPositionAligned) {
-        setState(() {
-          _isTabPositionAligned = true;
-        });
+      if (!_isTabPositionAligned.value) {
+        _isTabPositionAligned.value = true;
       }
 
-      if (modIndex != selectedIndex) {
+      if (modIndex != _selectedIndex.value) {
         widget.onPageChanged?.call(modIndex);
-        setState(() {
-          selectedIndex = modIndex;
-        });
+        _selectedIndex.value = modIndex;
         HapticFeedback.selectionClick();
       }
     });
@@ -242,10 +235,8 @@ class __ContentState extends State<_Content>
     widget.onPageChanged?.call(modIndex);
 
     HapticFeedback.selectionClick();
-    setState(() {
-      selectedIndex = modIndex;
-      _isTabPositionAligned = true;
-    });
+    _selectedIndex.value = modIndex;
+    _isTabPositionAligned.value = true;
 
     final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
     final section = rawIndex.isNegative
@@ -262,7 +253,7 @@ class __ContentState extends State<_Content>
         .then((_) => _isTabForceScrolling = false);
 
     _indicatorAnimation =
-        Tween(begin: _indicatorSizeNotifier.value, end: _tabTextSizes[modIndex])
+        Tween(begin: _indicatorSize.value, end: _tabTextSizes[modIndex])
             .animate(_indicatorAnimationController);
     _indicatorAnimationController.forward(from: 0);
 
@@ -302,24 +293,19 @@ class __ContentState extends State<_Content>
                 color: widget.backgroundColor,
                 child: InkWell(
                   onTap: () => _onTapTab(modIndex, rawIndex),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: widget.tabPadding,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom:
-                            selectedIndex == modIndex && !_isTabPositionAligned
-                                ? BorderSide(
-                                    color: widget.indicatorColor,
-                                    width: 2.0,
-                                  )
-                                : BorderSide.none,
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: _selectedIndex,
+                    builder: (context, index, _) =>
+                        ValueListenableBuilder<bool>(
+                      valueListenable: _isTabPositionAligned,
+                      builder: (context, tab, _) => _TabContent(
+                        isTabPositionAligned: tab,
+                        selectedIndex: index,
+                        indicatorColor: widget.indicatorColor,
+                        tabPadding: widget.tabPadding,
+                        modIndex: modIndex,
+                        tabBuilder: widget.tabBuilder,
                       ),
-                    ),
-                    child: Center(
-                      child: widget.tabBuilder(
-                          modIndex, selectedIndex == modIndex),
                     ),
                   ),
                 ),
@@ -336,22 +322,16 @@ class __ContentState extends State<_Content>
                   border: Border(bottom: widget.separator!),
                 ),
               ),
-            if (_isTabPositionAligned)
-              ValueListenableBuilder<double>(
-                valueListenable: _indicatorSizeNotifier,
-                builder: (context, value, _) => Center(
-                  child: Transform.translate(
-                    offset: Offset(0.0, -2.0),
-                    child: Container(
-                      height: 2.0,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: widget.indicatorColor),
-                      width: value,
-                    ),
-                  ),
+            ValueListenableBuilder<bool>(
+              valueListenable: _isTabPositionAligned,
+              builder: (context, value, _) => Visibility(
+                visible: value,
+                child: _CenteredIndicator(
+                  indicatorColor: widget.indicatorColor,
+                  size: _indicatorSize,
                 ),
               ),
+            ),
           ],
         ),
         Expanded(
@@ -362,8 +342,11 @@ class __ContentState extends State<_Content>
             physics: PageScrollPhysics(),
             itemBuilder: (context, modIndex, rawIndex) => SizedBox(
               width: widget.size.width,
-              child: widget.pageBuilder(
-                  context, modIndex, selectedIndex == modIndex),
+              child: ValueListenableBuilder<int>(
+                valueListenable: _selectedIndex,
+                builder: (context, value, _) =>
+                    widget.pageBuilder(context, modIndex, value == modIndex),
+              ),
             ),
           ),
         ),
@@ -391,5 +374,77 @@ class __ContentState extends State<_Content>
     _pageController.dispose();
     _indicatorAnimationController.dispose();
     super.dispose();
+  }
+}
+
+class _TabContent extends StatelessWidget {
+  const _TabContent({
+    Key? key,
+    required this.isTabPositionAligned,
+    required this.selectedIndex,
+    required this.modIndex,
+    required this.tabPadding,
+    required this.indicatorColor,
+    required this.tabBuilder,
+  }) : super(key: key);
+
+  final int modIndex;
+  final int selectedIndex;
+  final bool isTabPositionAligned;
+  final double tabPadding;
+  final Color indicatorColor;
+  final SelectIndexedTextBuilder tabBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: tabPadding,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: selectedIndex == modIndex && !isTabPositionAligned
+              ? BorderSide(
+                  color: indicatorColor,
+                  width: 2.0,
+                )
+              : BorderSide.none,
+        ),
+      ),
+      child: Center(
+        child: tabBuilder(modIndex, selectedIndex == modIndex),
+      ),
+    );
+  }
+}
+
+class _CenteredIndicator extends StatelessWidget {
+  const _CenteredIndicator({
+    Key? key,
+    required this.indicatorColor,
+    required this.size,
+  }) : super(key: key);
+
+  final Color indicatorColor;
+  final ValueNotifier<double> size;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: size,
+      builder: (context, value, _) => Center(
+        child: Transform.translate(
+          offset: Offset(0.0, -2.0),
+          child: Container(
+            height: 2.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              color: indicatorColor,
+            ),
+            width: value,
+          ),
+        ),
+      ),
+    );
   }
 }
