@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:infinite_scroll_tab_view/infinite_scroll_tab_view.dart';
+import 'package:infinite_scroll_tab_view/src/inner_infinite_scroll_tab_view.dart';
 
 void main() {
   test(
