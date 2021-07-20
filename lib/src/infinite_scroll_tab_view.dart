@@ -114,6 +114,8 @@ class __ContentState extends State<_Content>
   bool _isContentChangingByTab = false;
   bool _isTabForceScrolling = false;
 
+  late double _previousTextScaleFactor = widget.textScaleFactor;
+
   late final ValueNotifier<double> _indicatorSize;
   final _isTabPositionAligned = ValueNotifier<bool>(true);
   final _selectedIndex = ValueNotifier<int>(0);
@@ -158,9 +160,12 @@ class __ContentState extends State<_Content>
     return -(widget.size.width - _tabTextSizes[index]) / 2;
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void _calculateTabBehaviorElements(double textScaleFactor) {
+    _tabTextSizes.clear();
+    _tabSizesFromIndex.clear();
+    _tabOffsets.clear();
+    _tabSizeTweens.clear();
+    _totalTabSizeCache = 0.0;
 
     for (var i = 0; i < widget.contentLength; i++) {
       final text = widget.tabBuilder(i, false);
@@ -172,7 +177,7 @@ class __ContentState extends State<_Content>
         text: TextSpan(text: text.data, style: style),
         maxLines: 1,
         locale: text.locale ?? widget.defaultLocale,
-        textScaleFactor: widget.textScaleFactor,
+        textScaleFactor: textScaleFactor,
         textDirection: widget.textDirection,
       )..layout();
       final calculatedWidth = layoutedText.size.width + widget.tabPadding * 2;
@@ -191,6 +196,25 @@ class __ContentState extends State<_Content>
       final sizeEnd = _tabTextSizes[(i + 1) % widget.contentLength];
       _tabSizeTweens.add(Tween(begin: sizeBegin, end: sizeEnd));
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    final textScaleFactor = MediaQuery.textScaleFactorOf(context);
+    if (_previousTextScaleFactor != textScaleFactor) {
+      _previousTextScaleFactor = textScaleFactor;
+      setState(() {
+        _calculateTabBehaviorElements(textScaleFactor);
+      });
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _calculateTabBehaviorElements(widget.textScaleFactor);
 
     _indicatorSize = ValueNotifier(_tabTextSizes[0]);
 
