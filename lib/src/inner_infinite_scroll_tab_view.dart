@@ -54,7 +54,7 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
 class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     with SingleTickerProviderStateMixin {
   late final _tabController = CycledScrollController(
-    initialScrollOffset: _centeringOffset(0),
+    initialScrollOffset: centeringOffset(0),
   );
   late final _pageController = CycledScrollController();
 
@@ -68,7 +68,10 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   final _selectedIndex = ValueNotifier<int>(0);
 
   final List<double> _tabTextSizes = [];
+  List<double> get tabTextSizes => _tabTextSizes;
+
   final List<double> _tabSizesFromIndex = [];
+  List<double> get tabSizesFromIndex => _tabSizesFromIndex;
 
   /// ページ側のスクロール位置をタブのスクロール位置にマッピングさせるためのTween群。
   ///
@@ -77,8 +80,10 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   /// （0 <= i < n）
   /// ただし最後の要素の場合、endは タブ要素全体の長さ + センタリング用オフセットになる。
   final List<Tween<double>> _tabOffsets = [];
+  List<Tween<double>> get tabOffsets => _tabOffsets;
 
   final List<Tween<double>> _tabSizeTweens = [];
+  List<Tween<double>> get tabSizeTweens => _tabSizeTweens;
 
   late final _indicatorAnimationController =
       AnimationController(vsync: this, duration: _tabAnimationDuration)
@@ -103,7 +108,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     return size;
   }
 
-  double _centeringOffset(int index) {
+  double centeringOffset(int index) {
     return -(widget.size.width - _tabTextSizes[index]) / 2;
   }
 
@@ -125,7 +130,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
         text: TextSpan(text: text.data, style: style),
         maxLines: 1,
         locale: text.locale ?? widget.defaultLocale,
-        textScaleFactor: textScaleFactor,
+        textScaleFactor: text.textScaleFactor ?? textScaleFactor,
         textDirection: widget.textDirection,
       )..layout();
       final calculatedWidth = layoutedText.size.width + widget.tabPadding * 2;
@@ -134,10 +139,10 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     }
 
     for (var i = 0; i < widget.contentLength; i++) {
-      final offsetBegin = _tabSizesFromIndex[i] + _centeringOffset(i);
+      final offsetBegin = _tabSizesFromIndex[i] + centeringOffset(i);
       final offsetEnd = i == widget.contentLength - 1
-          ? _totalTabSize + _centeringOffset(0)
-          : _tabSizesFromIndex[i + 1] + _centeringOffset(i + 1);
+          ? _totalTabSize + centeringOffset(0)
+          : _tabSizesFromIndex[i + 1] + centeringOffset(i + 1);
       _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
 
       final sizeBegin = _tabTextSizes[i];
@@ -218,7 +223,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     _isTabForceScrolling = true;
     _tabController
         .animateTo(
-          targetOffset + _centeringOffset(modIndex),
+          targetOffset + centeringOffset(modIndex),
           duration: _tabAnimationDuration,
           curve: Curves.ease,
         )
