@@ -85,6 +85,8 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   final List<Tween<double>> _tabSizeTweens = [];
   List<Tween<double>> get tabSizeTweens => _tabSizeTweens;
 
+  double get indicatorWidth => widget.separator?.width ?? 2.0;
+
   late final _indicatorAnimationController =
       AnimationController(vsync: this, duration: _tabAnimationDuration)
         ..addListener(() {
@@ -259,53 +261,54 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          height: widget.tabHeight,
-          child: CycledListView.builder(
-            scrollDirection: Axis.horizontal,
-            controller: _tabController,
-            contentCount: widget.contentLength,
-            itemBuilder: (context, modIndex, rawIndex) {
-              return Material(
-                color: widget.backgroundColor,
-                child: InkWell(
-                  onTap: () => _onTapTab(modIndex, rawIndex),
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: _selectedIndex,
-                    builder: (context, index, _) =>
-                        ValueListenableBuilder<bool>(
-                      valueListenable: _isTabPositionAligned,
-                      builder: (context, tab, _) => _TabContent(
-                        isTabPositionAligned: tab,
-                        selectedIndex: index,
-                        indicatorColor: widget.indicatorColor,
-                        tabPadding: widget.tabPadding,
-                        modIndex: modIndex,
-                        tabBuilder: widget.tabBuilder,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
         Stack(
           children: [
-            if (widget.separator != null)
-              Container(
-                width: widget.size.width,
-                decoration: BoxDecoration(
-                  border: Border(bottom: widget.separator!),
-                ),
+            SizedBox(
+              height: widget.tabHeight + (widget.separator?.width ?? 0),
+              child: CycledListView.builder(
+                scrollDirection: Axis.horizontal,
+                controller: _tabController,
+                contentCount: widget.contentLength,
+                itemBuilder: (context, modIndex, rawIndex) {
+                  return Material(
+                    color: widget.backgroundColor,
+                    child: InkWell(
+                      onTap: () => _onTapTab(modIndex, rawIndex),
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: _selectedIndex,
+                        builder: (context, index, _) =>
+                            ValueListenableBuilder<bool>(
+                          valueListenable: _isTabPositionAligned,
+                          builder: (context, tab, _) => _TabContent(
+                            isTabPositionAligned: tab,
+                            selectedIndex: index,
+                            indicatorColor: widget.indicatorColor,
+                            tabPadding: widget.tabPadding,
+                            modIndex: modIndex,
+                            tabBuilder: widget.tabBuilder,
+                            separator: widget.separator,
+                            indicatorWidth: indicatorWidth,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-            ValueListenableBuilder<bool>(
-              valueListenable: _isTabPositionAligned,
-              builder: (context, value, _) => Visibility(
-                visible: value,
-                child: _CenteredIndicator(
-                  indicatorColor: widget.indicatorColor,
-                  size: _indicatorSize,
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _isTabPositionAligned,
+                builder: (context, value, _) => Visibility(
+                  visible: value,
+                  child: _CenteredIndicator(
+                    indicatorColor: widget.indicatorColor,
+                    size: _indicatorSize,
+                    indicatorWidth: indicatorWidth,
+                  ),
                 ),
               ),
             ),
@@ -363,6 +366,8 @@ class _TabContent extends StatelessWidget {
     required this.tabPadding,
     required this.indicatorColor,
     required this.tabBuilder,
+    this.separator,
+    required this.indicatorWidth,
   }) : super(key: key);
 
   final int modIndex;
@@ -371,26 +376,37 @@ class _TabContent extends StatelessWidget {
   final double tabPadding;
   final Color indicatorColor;
   final SelectIndexedTextBuilder tabBuilder;
+  final BorderSide? separator;
+  final double indicatorWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: tabPadding,
-      ),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: selectedIndex == modIndex && !isTabPositionAligned
-              ? BorderSide(
-                  color: indicatorColor,
-                  width: 2.0,
-                )
-              : BorderSide.none,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: tabPadding),
+          decoration: BoxDecoration(
+            border: Border(bottom: separator ?? BorderSide.none),
+          ),
+          child: Center(
+            child: tabBuilder(modIndex, selectedIndex == modIndex),
+          ),
         ),
-      ),
-      child: Center(
-        child: tabBuilder(modIndex, selectedIndex == modIndex),
-      ),
+        if (selectedIndex == modIndex && !isTabPositionAligned)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: indicatorWidth,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(indicatorWidth),
+                color: indicatorColor,
+              ),
+            ),
+          )
+      ],
     );
   }
 }
@@ -400,26 +416,25 @@ class _CenteredIndicator extends StatelessWidget {
     Key? key,
     required this.indicatorColor,
     required this.size,
+    required this.indicatorWidth,
   }) : super(key: key);
 
   final Color indicatorColor;
   final ValueNotifier<double> size;
+  final double indicatorWidth;
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<double>(
       valueListenable: size,
       builder: (context, value, _) => Center(
-        child: Transform.translate(
-          offset: const Offset(0.0, -2.0),
-          child: Container(
-            height: 2.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: indicatorColor,
-            ),
-            width: value,
+        child: Container(
+          height: indicatorWidth,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(indicatorWidth),
+            color: indicatorColor,
           ),
+          width: value,
         ),
       ),
     );
