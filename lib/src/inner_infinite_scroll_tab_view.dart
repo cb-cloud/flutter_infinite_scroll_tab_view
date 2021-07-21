@@ -302,8 +302,8 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
               right: 0,
               child: ValueListenableBuilder<bool>(
                 valueListenable: _isTabPositionAligned,
-                builder: (context, value, _) => Offstage(
-                  offstage: !value,
+                builder: (context, value, _) => Visibility(
+                  visible: value,
                   child: _CenteredIndicator(
                     indicatorColor: widget.indicatorColor,
                     size: _indicatorSize,
