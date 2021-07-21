@@ -1,4 +1,5 @@
 # 📜 infinite_scroll_tab_view
+[![pub package](https://img.shields.io/pub/v/infinite_scroll_tab_view.svg)](https://pub.dev/packages/infinite_scroll_tab_view)
 
 A Flutter package for tab view component that can scroll infinitely.
 
