@@ -60,7 +60,7 @@ class __ContentState extends State<_Content> {
           fontSize: 18,
         ),
       ),
-      separator: BorderSide(color: Colors.black12, width: 1.0),
+      separator: BorderSide(color: Colors.black12, width: 2.0),
       onPageChanged: (index) => print('page changed to $index.'),
       indicatorColor: Colors.pink,
       pageBuilder: (context, index, _) {
