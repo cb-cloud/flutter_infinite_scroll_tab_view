@@ -60,7 +60,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   );
   late final _pageController = CycledScrollController();
 
-  bool _isContentChangingByTab = false;
+  final ValueNotifier<bool> _isContentChangingByTab = ValueNotifier(false);
   bool _isTabForceScrolling = false;
 
   late double _previousTextScaleFactor = widget.textScaleFactor;
@@ -185,7 +185,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     });
 
     _pageController.addListener(() {
-      if (_isContentChangingByTab) return;
+      if (_isContentChangingByTab.value) return;
 
       final currentIndexDouble = _pageController.offset / widget.size.width;
       final currentIndex = currentIndexDouble.floor();
@@ -213,6 +213,8 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   }
 
   void _onTapTab(int modIndex, int rawIndex) async {
+    _isContentChangingByTab.value = true;
+
     widget.onTabTap?.call(modIndex);
     widget.onPageChanged?.call(modIndex);
 
@@ -239,7 +241,6 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
             .animate(_indicatorAnimationController);
     _indicatorAnimationController.forward(from: 0);
 
-    _isContentChangingByTab = true;
     // 現在のスクロール位置とページインデックスを取得
     final currentOffset = _pageController.offset;
     final currentModIndex =
@@ -257,7 +258,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
       curve: Curves.ease,
     );
 
-    _isContentChangingByTab = false;
+    _isContentChangingByTab.value = false;
   }
 
   @override
@@ -268,35 +269,12 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
           children: [
             SizedBox(
               height: widget.tabHeight + (widget.separator?.width ?? 0),
-              child: CycledListView.builder(
-                scrollDirection: Axis.horizontal,
-                controller: _tabController,
-                contentCount: widget.contentLength,
-                itemBuilder: (context, modIndex, rawIndex) {
-                  return Material(
-                    color: widget.backgroundColor,
-                    child: InkWell(
-                      onTap: () => _onTapTab(modIndex, rawIndex),
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: _selectedIndex,
-                        builder: (context, index, _) =>
-                            ValueListenableBuilder<bool>(
-                          valueListenable: _isTabPositionAligned,
-                          builder: (context, tab, _) => _TabContent(
-                            isTabPositionAligned: tab,
-                            selectedIndex: index,
-                            indicatorColor: widget.indicatorColor,
-                            tabPadding: widget.tabPadding,
-                            modIndex: modIndex,
-                            tabBuilder: widget.tabBuilder,
-                            separator: widget.separator,
-                            indicatorWidth: indicatorWidth,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _isContentChangingByTab,
+                builder: (context, value, _) => AbsorbPointer(
+                  absorbing: value,
+                  child: _buildTabSection(),
+                ),
               ),
             ),
             Positioned(
@@ -334,6 +312,38 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTabSection() {
+    return CycledListView.builder(
+      scrollDirection: Axis.horizontal,
+      controller: _tabController,
+      contentCount: widget.contentLength,
+      itemBuilder: (context, modIndex, rawIndex) {
+        return Material(
+          color: widget.backgroundColor,
+          child: InkWell(
+            onTap: () => _onTapTab(modIndex, rawIndex),
+            child: ValueListenableBuilder<int>(
+              valueListenable: _selectedIndex,
+              builder: (context, index, _) => ValueListenableBuilder<bool>(
+                valueListenable: _isTabPositionAligned,
+                builder: (context, tab, _) => _TabContent(
+                  isTabPositionAligned: tab,
+                  selectedIndex: index,
+                  indicatorColor: widget.indicatorColor,
+                  tabPadding: widget.tabPadding,
+                  modIndex: modIndex,
+                  tabBuilder: widget.tabBuilder,
+                  separator: widget.separator,
+                  indicatorWidth: indicatorWidth,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
