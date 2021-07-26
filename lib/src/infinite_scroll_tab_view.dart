@@ -88,6 +88,8 @@ class InfiniteScrollTabView extends StatelessWidget {
   ///
   /// If this is null, the indicator height is aligned to [separator] height, or
   /// it also null, then fallbacks to 2.0.
+  ///
+  /// This must 1.0 or higher.
   final double? indicatorHeight;
 
   /// The height of tab contents.
@@ -104,6 +106,10 @@ class InfiniteScrollTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (indicatorHeight != null) {
+      assert(indicatorHeight! >= 1.0);
+    }
+
     return LayoutBuilder(
       builder: (context, constraint) => InnerInfiniteScrollTabView(
         size: constraint.biggest,
