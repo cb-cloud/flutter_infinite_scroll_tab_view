@@ -219,7 +219,6 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     widget.onPageChanged?.call(modIndex);
 
     HapticFeedback.selectionClick();
-    _selectedIndex.value = modIndex;
     _isTabPositionAligned.value = true;
 
     final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
@@ -243,14 +242,14 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
 
     // 現在のスクロール位置とページインデックスを取得
     final currentOffset = _pageController.offset;
-    final currentModIndex =
-        (currentOffset ~/ widget.size.width) % widget.contentLength;
 
     // 選択したページまでの距離を計算する
     // modの境界をまたぐ場合を考慮して、近い方向を指すように正負を調整する
     final move = calculateMoveIndexDistance(
-        currentModIndex, modIndex, widget.contentLength);
+        _selectedIndex.value, modIndex, widget.contentLength);
     final targetPageOffset = currentOffset + move * widget.size.width;
+
+    _selectedIndex.value = modIndex;
 
     await _pageController.animateTo(
       targetPageOffset,
