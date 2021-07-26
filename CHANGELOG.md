@@ -1,3 +1,8 @@
+## 1.0.1
+FIX
+- Added `indicatorHeight` property to `InfintieScrollTabView`. It will override indicator height if specified non-null value.
+- The tabs now prevent double tap.
+- Fixed a bug that tapping tab causes changing page to unexpected index sometime.
 ## 1.0.0
 FEAT
 - Changed internal structure about indicator. It considers specified `separator`'s size now.
