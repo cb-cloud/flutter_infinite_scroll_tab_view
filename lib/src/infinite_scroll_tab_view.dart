@@ -29,6 +29,7 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.backgroundColor,
     this.onPageChanged,
     this.indicatorColor = Colors.pinkAccent,
+    this.indicatorHeight,
     this.tabHeight = 44.0,
     this.tabPadding = 12.0,
   }) : super(key: key);
@@ -83,6 +84,12 @@ class InfiniteScrollTabView extends StatelessWidget {
   /// Defaults to [Colors.pinkAccent], and must not be null.
   final Color indicatorColor;
 
+  /// The height of indicator.
+  ///
+  /// If this is null, the indicator height is aligned to [separator] height, or
+  /// it also null, then fallbacks to 2.0.
+  final double? indicatorHeight;
+
   /// The height of tab contents.
   ///
   /// Defaults to 44.0.
@@ -111,6 +118,7 @@ class InfiniteScrollTabView extends StatelessWidget {
         backgroundColor: backgroundColor,
         onPageChanged: onPageChanged,
         indicatorColor: indicatorColor,
+        indicatorHeight: indicatorHeight,
         defaultLocale: Localizations.localeOf(context),
         tabHeight: tabHeight,
         tabPadding: tabPadding,

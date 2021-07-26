@@ -24,6 +24,7 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
     this.backgroundColor,
     this.onPageChanged,
     required this.indicatorColor,
+    this.indicatorHeight,
     required this.defaultLocale,
     required this.tabHeight,
     required this.tabPadding,
@@ -41,6 +42,7 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
   final Color? backgroundColor;
   final ValueChanged<int>? onPageChanged;
   final Color indicatorColor;
+  final double? indicatorHeight;
   final Locale defaultLocale;
   final double tabHeight;
   final double tabPadding;
@@ -85,7 +87,8 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   final List<Tween<double>> _tabSizeTweens = [];
   List<Tween<double>> get tabSizeTweens => _tabSizeTweens;
 
-  double get indicatorWidth => widget.separator?.width ?? 2.0;
+  double get indicatorWidth =>
+      widget.indicatorHeight ?? widget.separator?.width ?? 2.0;
 
   late final _indicatorAnimationController =
       AnimationController(vsync: this, duration: _tabAnimationDuration)
