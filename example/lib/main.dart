@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:infinite_scroll_tab_view/infinite_scroll_tab_view.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      home: const HomePage(),
     );
   }
 }
@@ -25,9 +27,9 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('InfiniteScrollTabView Demo'),
+        title: const Text('InfiniteScrollTabView Demo'),
       ),
-      body: _Content(),
+      body: const _Content(),
     );
   }
 }
@@ -50,7 +52,7 @@ class __ContentState extends State<_Content> {
     return InfiniteScrollTabView(
       contentLength: contents.length,
       onTabTap: (index) {
-        print('tapped $index');
+        debugPrint('tapped $index');
       },
       tabBuilder: (index, isSelected) => Text(
         _convertContent(contents[index]),
@@ -60,8 +62,8 @@ class __ContentState extends State<_Content> {
           fontSize: 18,
         ),
       ),
-      separator: BorderSide(color: Colors.black12, width: 2.0),
-      onPageChanged: (index) => print('page changed to $index.'),
+      separator: const BorderSide(color: Colors.black12, width: 2.0),
+      onPageChanged: (index) => debugPrint('page changed to $index.'),
       indicatorColor: Colors.pink,
       pageBuilder: (context, index, _) {
         return SizedBox.expand(
