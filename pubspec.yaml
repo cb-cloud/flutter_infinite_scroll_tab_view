@@ -1,6 +1,6 @@
 name: infinite_scroll_tab_view
 description: A Flutter package for tab view component that can scroll infinitely.
-version: 1.0.1
+version: 1.0.2
 repository: https://github.com/cb-cloud/flutter_infinite_scroll_tab_view
 
 environment:

@@ -32,6 +32,7 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.indicatorHeight,
     this.tabHeight = 44.0,
     this.tabPadding = 12.0,
+    this.size,
   }) : super(key: key);
 
   /// A length of tabs and pages.
@@ -104,31 +105,38 @@ class InfiniteScrollTabView extends StatelessWidget {
   /// the tabs will have padding as `EdgeInsets.symmetric(horizontal: 12.0)`.
   final double tabPadding;
 
+  /// The size constraint of this widget.
+  ///
+  /// If this is null, then `MediaQuery.of(context).size` is used as default.
+  /// This value should specify only in some rare case, testing or something
+  /// like that.
+  /// Internally this is only used for get page width, but this value determines
+  /// entire widget's width.
+  final Size? size;
+
   @override
   Widget build(BuildContext context) {
     if (indicatorHeight != null) {
       assert(indicatorHeight! >= 1.0);
     }
 
-    return LayoutBuilder(
-      builder: (context, constraint) => InnerInfiniteScrollTabView(
-        size: constraint.biggest,
-        contentLength: contentLength,
-        tabBuilder: tabBuilder,
-        pageBuilder: pageBuilder,
-        onTabTap: onTabTap,
-        separator: separator,
-        textScaleFactor: MediaQuery.of(context).textScaleFactor,
-        defaultTextStyle: DefaultTextStyle.of(context).style,
-        textDirection: Directionality.of(context),
-        backgroundColor: backgroundColor,
-        onPageChanged: onPageChanged,
-        indicatorColor: indicatorColor,
-        indicatorHeight: indicatorHeight,
-        defaultLocale: Localizations.localeOf(context),
-        tabHeight: tabHeight,
-        tabPadding: tabPadding,
-      ),
+    return InnerInfiniteScrollTabView(
+      size: MediaQuery.of(context).size,
+      contentLength: contentLength,
+      tabBuilder: tabBuilder,
+      pageBuilder: pageBuilder,
+      onTabTap: onTabTap,
+      separator: separator,
+      textScaleFactor: MediaQuery.of(context).textScaleFactor,
+      defaultTextStyle: DefaultTextStyle.of(context).style,
+      textDirection: Directionality.of(context),
+      backgroundColor: backgroundColor,
+      onPageChanged: onPageChanged,
+      indicatorColor: indicatorColor,
+      indicatorHeight: indicatorHeight,
+      defaultLocale: Localizations.localeOf(context),
+      tabHeight: tabHeight,
+      tabPadding: tabPadding,
     );
   }
 }
