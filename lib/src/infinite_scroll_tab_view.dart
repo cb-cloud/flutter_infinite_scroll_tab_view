@@ -116,7 +116,19 @@ class InfiniteScrollTabView extends StatelessWidget {
   /// entire widget's width.
   final Size? size;
 
+  /// The flag of using fixed tab width.
+  ///
+  /// When enable this, the tabs size will align fixed size that calculated from
+  /// [size] with [fixedTabWidthFraction].
+  ///
+  /// If the tab content width exceeds fixed width, the content will be resized
+  /// by [FittedBox] with [BoxFit.contain].
   final bool forceFixedTabWidth;
+
+  /// The value of fraction when fixed tab size used.
+  ///
+  /// Defaults to 0.5.
+  /// This will be ignored when [forceFixedTabWidth] is false.
   final double fixedTabWidthFraction;
 
   @override
