@@ -337,6 +337,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
                   tabBuilder: widget.tabBuilder,
                   separator: widget.separator,
                   indicatorWidth: indicatorWidth,
+                  tabWidth: _tabTextSizes[modIndex],
                 ),
               ),
             ),
@@ -380,6 +381,7 @@ class _TabContent extends StatelessWidget {
     required this.tabBuilder,
     this.separator,
     required this.indicatorWidth,
+    required this.tabWidth,
   }) : super(key: key);
 
   final int modIndex;
@@ -390,6 +392,7 @@ class _TabContent extends StatelessWidget {
   final SelectIndexedTextBuilder tabBuilder;
   final BorderSide? separator;
   final double indicatorWidth;
+  final double tabWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -397,12 +400,16 @@ class _TabContent extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
+          width: tabWidth,
           padding: EdgeInsets.symmetric(horizontal: tabPadding),
           decoration: BoxDecoration(
             border: Border(bottom: separator ?? BorderSide.none),
           ),
           child: Center(
-            child: tabBuilder(modIndex, selectedIndex == modIndex),
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: tabBuilder(modIndex, selectedIndex == modIndex),
+            ),
           ),
         ),
         if (selectedIndex == modIndex && !isTabPositionAligned)
