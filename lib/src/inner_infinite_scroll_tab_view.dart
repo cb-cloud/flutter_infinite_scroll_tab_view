@@ -28,6 +28,8 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
     required this.defaultLocale,
     required this.tabHeight,
     required this.tabPadding,
+    required this.forceFixedTabWidth,
+    required this.fixedTabWidthFraction,
   }) : super(key: key);
 
   final Size size;
@@ -46,6 +48,8 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
   final Locale defaultLocale;
   final double tabHeight;
   final double tabPadding;
+  final bool forceFixedTabWidth;
+  final double fixedTabWidthFraction;
 
   @override
   InnerInfiniteScrollTabViewState createState() =>
@@ -101,9 +105,13 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   double _totalTabSizeCache = 0.0;
   double get _totalTabSize {
     if (_totalTabSizeCache != 0.0) return _totalTabSizeCache;
-    _totalTabSizeCache = _tabTextSizes.reduce((v, e) => v += e);
+    _totalTabSizeCache = widget.forceFixedTabWidth
+        ? _fixedTabWidth * widget.contentLength
+        : _tabTextSizes.reduce((v, e) => v += e);
     return _totalTabSizeCache;
   }
+
+  double get _fixedTabWidth => widget.size.width * widget.fixedTabWidthFraction;
 
   double _calculateTabSizeFromIndex(int index) {
     var size = 0.0;
@@ -114,7 +122,9 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   }
 
   double centeringOffset(int index) {
-    return -(widget.size.width - _tabTextSizes[index]) / 2;
+    final tabSize =
+        widget.forceFixedTabWidth ? _fixedTabWidth : _tabTextSizes[index];
+    return -(widget.size.width - tabSize) / 2;
   }
 
   @visibleForTesting
@@ -144,11 +154,17 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     }
 
     for (var i = 0; i < widget.contentLength; i++) {
-      final offsetBegin = _tabSizesFromIndex[i] + centeringOffset(i);
-      final offsetEnd = i == widget.contentLength - 1
-          ? _totalTabSize + centeringOffset(0)
-          : _tabSizesFromIndex[i + 1] + centeringOffset(i + 1);
-      _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      if (widget.forceFixedTabWidth) {
+        final offsetBegin = _fixedTabWidth * i + centeringOffset(i);
+        final offsetEnd = _fixedTabWidth * (i + 1) + centeringOffset(i);
+        _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      } else {
+        final offsetBegin = _tabSizesFromIndex[i] + centeringOffset(i);
+        final offsetEnd = i == widget.contentLength - 1
+            ? _totalTabSize + centeringOffset(0)
+            : _tabSizesFromIndex[i + 1] + centeringOffset(i + 1);
+        _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      }
 
       final sizeBegin = _tabTextSizes[i];
       final sizeEnd = _tabTextSizes[(i + 1) % widget.contentLength];
@@ -320,7 +336,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
       controller: _tabController,
       contentCount: widget.contentLength,
       itemBuilder: (context, modIndex, rawIndex) {
-        return Material(
+        final tab = Material(
           color: widget.backgroundColor,
           child: InkWell(
             onTap: () => _onTapTab(modIndex, rawIndex),
@@ -343,6 +359,10 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
             ),
           ),
         );
+
+        return widget.forceFixedTabWidth
+            ? SizedBox(width: _fixedTabWidth, child: tab)
+            : tab;
       },
     );
   }

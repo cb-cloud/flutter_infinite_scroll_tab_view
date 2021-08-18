@@ -33,6 +33,8 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.tabHeight = 44.0,
     this.tabPadding = 12.0,
     this.size,
+    this.forceFixedTabWidth = false,
+    this.fixedTabWidthFraction = 0.7,
   }) : super(key: key);
 
   /// A length of tabs and pages.
@@ -114,6 +116,9 @@ class InfiniteScrollTabView extends StatelessWidget {
   /// entire widget's width.
   final Size? size;
 
+  final bool forceFixedTabWidth;
+  final double fixedTabWidthFraction;
+
   @override
   Widget build(BuildContext context) {
     if (indicatorHeight != null) {
@@ -137,6 +142,8 @@ class InfiniteScrollTabView extends StatelessWidget {
       defaultLocale: Localizations.localeOf(context),
       tabHeight: tabHeight,
       tabPadding: tabPadding,
+      forceFixedTabWidth: forceFixedTabWidth,
+      fixedTabWidthFraction: fixedTabWidthFraction,
     );
   }
 }
