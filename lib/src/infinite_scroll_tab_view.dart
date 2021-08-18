@@ -34,7 +34,7 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.tabPadding = 12.0,
     this.size,
     this.forceFixedTabWidth = false,
-    this.fixedTabWidthFraction = 0.7,
+    this.fixedTabWidthFraction = 0.5,
   }) : super(key: key);
 
   /// A length of tabs and pages.
