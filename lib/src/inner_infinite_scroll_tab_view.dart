@@ -28,6 +28,8 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
     required this.defaultLocale,
     required this.tabHeight,
     required this.tabPadding,
+    required this.forceFixedTabWidth,
+    required this.fixedTabWidthFraction,
   }) : super(key: key);
 
   final Size size;
@@ -46,6 +48,8 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
   final Locale defaultLocale;
   final double tabHeight;
   final double tabPadding;
+  final bool forceFixedTabWidth;
+  final double fixedTabWidthFraction;
 
   @override
   InnerInfiniteScrollTabViewState createState() =>
@@ -87,7 +91,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   final List<Tween<double>> _tabSizeTweens = [];
   List<Tween<double>> get tabSizeTweens => _tabSizeTweens;
 
-  double get indicatorWidth =>
+  double get indicatorHeight =>
       widget.indicatorHeight ?? widget.separator?.width ?? 2.0;
 
   late final _indicatorAnimationController =
@@ -101,9 +105,13 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   double _totalTabSizeCache = 0.0;
   double get _totalTabSize {
     if (_totalTabSizeCache != 0.0) return _totalTabSizeCache;
-    _totalTabSizeCache = _tabTextSizes.reduce((v, e) => v += e);
+    _totalTabSizeCache = widget.forceFixedTabWidth
+        ? _fixedTabWidth * widget.contentLength
+        : _tabTextSizes.reduce((v, e) => v += e);
     return _totalTabSizeCache;
   }
+
+  double get _fixedTabWidth => widget.size.width * widget.fixedTabWidthFraction;
 
   double _calculateTabSizeFromIndex(int index) {
     var size = 0.0;
@@ -114,7 +122,9 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
   }
 
   double centeringOffset(int index) {
-    return -(widget.size.width - _tabTextSizes[index]) / 2;
+    final tabSize =
+        widget.forceFixedTabWidth ? _fixedTabWidth : _tabTextSizes[index];
+    return -(widget.size.width - tabSize) / 2;
   }
 
   @visibleForTesting
@@ -139,20 +149,31 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
         textDirection: widget.textDirection,
       )..layout();
       final calculatedWidth = layoutedText.size.width + widget.tabPadding * 2;
-      _tabTextSizes.add(math.min(calculatedWidth, widget.size.width));
+      final sizeConstraint =
+          widget.forceFixedTabWidth ? _fixedTabWidth : widget.size.width;
+      _tabTextSizes.add(math.min(calculatedWidth, sizeConstraint));
       _tabSizesFromIndex.add(_calculateTabSizeFromIndex(i));
     }
 
     for (var i = 0; i < widget.contentLength; i++) {
-      final offsetBegin = _tabSizesFromIndex[i] + centeringOffset(i);
-      final offsetEnd = i == widget.contentLength - 1
-          ? _totalTabSize + centeringOffset(0)
-          : _tabSizesFromIndex[i + 1] + centeringOffset(i + 1);
-      _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      if (widget.forceFixedTabWidth) {
+        final offsetBegin = _fixedTabWidth * i + centeringOffset(i);
+        final offsetEnd = _fixedTabWidth * (i + 1) + centeringOffset(i);
+        _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      } else {
+        final offsetBegin = _tabSizesFromIndex[i] + centeringOffset(i);
+        final offsetEnd = i == widget.contentLength - 1
+            ? _totalTabSize + centeringOffset(0)
+            : _tabSizesFromIndex[i + 1] + centeringOffset(i + 1);
+        _tabOffsets.add(Tween(begin: offsetBegin, end: offsetEnd));
+      }
 
       final sizeBegin = _tabTextSizes[i];
       final sizeEnd = _tabTextSizes[(i + 1) % widget.contentLength];
-      _tabSizeTweens.add(Tween(begin: sizeBegin, end: sizeEnd));
+      _tabSizeTweens.add(Tween(
+        begin: math.min(sizeBegin, _fixedTabWidth),
+        end: math.min(sizeEnd, _fixedTabWidth),
+      ));
     }
   }
 
@@ -221,7 +242,9 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
     HapticFeedback.selectionClick();
     _isTabPositionAligned.value = true;
 
-    final sizeOnIndex = _calculateTabSizeFromIndex(modIndex);
+    final sizeOnIndex = widget.forceFixedTabWidth
+        ? _fixedTabWidth * modIndex
+        : _tabSizesFromIndex[modIndex];
     final section = rawIndex.isNegative
         ? (rawIndex + 1) ~/ widget.contentLength - 1
         : rawIndex ~/ widget.contentLength;
@@ -287,7 +310,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
                   child: _CenteredIndicator(
                     indicatorColor: widget.indicatorColor,
                     size: _indicatorSize,
-                    indicatorWidth: indicatorWidth,
+                    indicatorHeight: indicatorHeight,
                   ),
                 ),
               ),
@@ -320,7 +343,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
       controller: _tabController,
       contentCount: widget.contentLength,
       itemBuilder: (context, modIndex, rawIndex) {
-        return Material(
+        final tab = Material(
           color: widget.backgroundColor,
           child: InkWell(
             onTap: () => _onTapTab(modIndex, rawIndex),
@@ -336,13 +359,20 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
                   modIndex: modIndex,
                   tabBuilder: widget.tabBuilder,
                   separator: widget.separator,
-                  indicatorWidth: indicatorWidth,
-                  tabWidth: _tabTextSizes[modIndex],
+                  tabWidth: widget.forceFixedTabWidth
+                      ? _fixedTabWidth
+                      : _tabTextSizes[modIndex],
+                  indicatorHeight: indicatorHeight,
+                  indicatorWidth: _tabTextSizes[modIndex],
                 ),
               ),
             ),
           ),
         );
+
+        return widget.forceFixedTabWidth
+            ? SizedBox(width: _fixedTabWidth, child: tab)
+            : tab;
       },
     );
   }
@@ -380,6 +410,7 @@ class _TabContent extends StatelessWidget {
     required this.indicatorColor,
     required this.tabBuilder,
     this.separator,
+    required this.indicatorHeight,
     required this.indicatorWidth,
     required this.tabWidth,
   }) : super(key: key);
@@ -391,6 +422,7 @@ class _TabContent extends StatelessWidget {
   final Color indicatorColor;
   final SelectIndexedTextBuilder tabBuilder;
   final BorderSide? separator;
+  final double indicatorHeight;
   final double indicatorWidth;
   final double tabWidth;
 
@@ -415,13 +447,16 @@ class _TabContent extends StatelessWidget {
         if (selectedIndex == modIndex && !isTabPositionAligned)
           Positioned(
             bottom: 0,
+            height: indicatorHeight,
             left: 0,
             right: 0,
-            child: Container(
-              height: indicatorWidth,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(indicatorWidth),
-                color: indicatorColor,
+            child: Center(
+              child: Container(
+                width: indicatorWidth,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(indicatorHeight),
+                  color: indicatorColor,
+                ),
               ),
             ),
           )
@@ -435,12 +470,12 @@ class _CenteredIndicator extends StatelessWidget {
     Key? key,
     required this.indicatorColor,
     required this.size,
-    required this.indicatorWidth,
+    required this.indicatorHeight,
   }) : super(key: key);
 
   final Color indicatorColor;
   final ValueNotifier<double> size;
-  final double indicatorWidth;
+  final double indicatorHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -448,9 +483,9 @@ class _CenteredIndicator extends StatelessWidget {
       valueListenable: size,
       builder: (context, value, _) => Center(
         child: Container(
-          height: indicatorWidth,
+          height: indicatorHeight,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(indicatorWidth),
+            borderRadius: BorderRadius.circular(indicatorHeight),
             color: indicatorColor,
           ),
           width: value,

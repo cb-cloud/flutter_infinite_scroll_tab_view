@@ -33,6 +33,8 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.tabHeight = 44.0,
     this.tabPadding = 12.0,
     this.size,
+    this.forceFixedTabWidth = false,
+    this.fixedTabWidthFraction = 0.5,
   }) : super(key: key);
 
   /// A length of tabs and pages.
@@ -114,6 +116,21 @@ class InfiniteScrollTabView extends StatelessWidget {
   /// entire widget's width.
   final Size? size;
 
+  /// The flag of using fixed tab width.
+  ///
+  /// When enable this, the tabs size will align fixed size that calculated from
+  /// [size] with [fixedTabWidthFraction].
+  ///
+  /// If the tab content width exceeds fixed width, the content will be resized
+  /// by [FittedBox] with [BoxFit.contain].
+  final bool forceFixedTabWidth;
+
+  /// The value of fraction when fixed tab size used.
+  ///
+  /// Defaults to 0.5.
+  /// This will be ignored when [forceFixedTabWidth] is false.
+  final double fixedTabWidthFraction;
+
   @override
   Widget build(BuildContext context) {
     if (indicatorHeight != null) {
@@ -137,6 +154,8 @@ class InfiniteScrollTabView extends StatelessWidget {
       defaultLocale: Localizations.localeOf(context),
       tabHeight: tabHeight,
       tabPadding: tabPadding,
+      forceFixedTabWidth: forceFixedTabWidth,
+      fixedTabWidthFraction: fixedTabWidthFraction,
     );
   }
 }
