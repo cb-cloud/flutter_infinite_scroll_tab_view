@@ -1,3 +1,9 @@
+## 1.0.3
+FEAT
+- Added `forceFixedTabWidth` `fixedTabWidthFraction` properties.
+  - `forceFixedTabWidth` makes the Widget force to use fixed-size tab.
+  - `fixedTabWidthFraction` determines tab width fraction from Widget size when using fixed-size tab.
+
 ## 1.0.2
 FIX
 - Removed `LayoutBuilder` from root of `InfiniteScrollTabView`. This change prevents some performance issue.
