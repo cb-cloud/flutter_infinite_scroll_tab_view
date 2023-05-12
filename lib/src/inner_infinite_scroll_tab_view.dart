@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 import '../infinite_scroll_tab_view.dart';
 import 'cycled_list_view.dart';
@@ -24,6 +23,7 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
     this.backgroundColor,
     this.onPageChanged,
     required this.indicatorColor,
+    this.indicatorRadius,
     this.indicatorHeight,
     required this.defaultLocale,
     required this.tabHeight,
@@ -44,6 +44,7 @@ class InnerInfiniteScrollTabView extends StatefulWidget {
   final Color? backgroundColor;
   final ValueChanged<int>? onPageChanged;
   final Color indicatorColor;
+  final BorderRadius? indicatorRadius;
   final double? indicatorHeight;
   final Locale defaultLocale;
   final double tabHeight;
@@ -311,6 +312,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
                     indicatorColor: widget.indicatorColor,
                     size: _indicatorSize,
                     indicatorHeight: indicatorHeight,
+                    indicatorRadius: widget.indicatorRadius,
                   ),
                 ),
               ),
@@ -364,6 +366,7 @@ class InnerInfiniteScrollTabViewState extends State<InnerInfiniteScrollTabView>
                       : _tabTextSizes[modIndex],
                   indicatorHeight: indicatorHeight,
                   indicatorWidth: _tabTextSizes[modIndex],
+                  indicatorRadius: widget.indicatorRadius,
                 ),
               ),
             ),
@@ -413,6 +416,7 @@ class _TabContent extends StatelessWidget {
     required this.indicatorHeight,
     required this.indicatorWidth,
     required this.tabWidth,
+    this.indicatorRadius,
   }) : super(key: key);
 
   final int modIndex;
@@ -424,6 +428,7 @@ class _TabContent extends StatelessWidget {
   final BorderSide? separator;
   final double indicatorHeight;
   final double indicatorWidth;
+  final BorderRadius? indicatorRadius;
   final double tabWidth;
 
   @override
@@ -454,7 +459,8 @@ class _TabContent extends StatelessWidget {
               child: Container(
                 width: indicatorWidth,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(indicatorHeight),
+                  borderRadius:
+                      indicatorRadius ?? BorderRadius.circular(indicatorHeight),
                   color: indicatorColor,
                 ),
               ),
@@ -471,11 +477,13 @@ class _CenteredIndicator extends StatelessWidget {
     required this.indicatorColor,
     required this.size,
     required this.indicatorHeight,
+    this.indicatorRadius,
   }) : super(key: key);
 
   final Color indicatorColor;
   final ValueNotifier<double> size;
   final double indicatorHeight;
+  final BorderRadius? indicatorRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +493,8 @@ class _CenteredIndicator extends StatelessWidget {
         child: Container(
           height: indicatorHeight,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(indicatorHeight),
+            borderRadius:
+                indicatorRadius ?? BorderRadius.circular(indicatorHeight),
             color: indicatorColor,
           ),
           width: value,

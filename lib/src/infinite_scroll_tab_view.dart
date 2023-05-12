@@ -30,12 +30,17 @@ class InfiniteScrollTabView extends StatelessWidget {
     this.onPageChanged,
     this.indicatorColor = Colors.pinkAccent,
     this.indicatorHeight,
+    this.indicatorRadius,
     this.tabHeight = 44.0,
     this.tabPadding = 12.0,
     this.size,
     this.forceFixedTabWidth = false,
     this.fixedTabWidthFraction = 0.5,
   }) : super(key: key);
+
+  /// The border radius of the indicator. If this is null, the indicator will
+  /// be rounded according to [indicatorHeight].
+  final BorderRadius? indicatorRadius;
 
   /// A length of tabs and pages.
   ///
@@ -151,6 +156,7 @@ class InfiniteScrollTabView extends StatelessWidget {
       onPageChanged: onPageChanged,
       indicatorColor: indicatorColor,
       indicatorHeight: indicatorHeight,
+      indicatorRadius: indicatorRadius,
       defaultLocale: Localizations.localeOf(context),
       tabHeight: tabHeight,
       tabPadding: tabPadding,

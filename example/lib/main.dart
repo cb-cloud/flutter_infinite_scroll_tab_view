@@ -74,7 +74,7 @@ class __ContentState extends State<_Content> {
             child: Center(
               child: Text(
                 _convertContent(contents[index]),
-                style: Theme.of(context).textTheme.headline3!.copyWith(
+                style: Theme.of(context).textTheme.displaySmall!.copyWith(
                       color: contents[index] / 10 > 0.6
                           ? Colors.white
                           : Colors.black87,
